@@ -181,12 +181,27 @@ namespace DigitalOceanUploader.Shared
 			return multiPartStart?.UploadId;
 		}
 
-		/// <summary>
-		/// Downloads the file.
-		/// </summary>
-		/// <returns>The file.</returns>
-		/// <param name="uploadName">Upload name.</param>
-		public async Task<byte[]> DownloadFile(string uploadName)
+        public async Task<IEnumerable<string>> ListFiles()
+        {
+            using (var client = CreateNewClient())
+            {
+                var objectResponse = await client.ListObjectsV2Async(new Amazon.S3.Model.ListObjectsV2Request()
+                {
+                    BucketName = _spaceName
+                });
+
+                var o = 1;
+                return objectResponse.S3Objects.Select(l => l.Key).ToArray();
+//                return "";
+            }
+
+        }
+        /// <summary>
+        /// Downloads the file.
+        /// </summary>
+        /// <returns>The file.</returns>
+        /// <param name="uploadName">Upload name.</param>
+        public async Task<byte[]> DownloadFile(string uploadName)
 		{
 			if (string.IsNullOrWhiteSpace(uploadName))
 				throw new ArgumentNullException(nameof(uploadName));

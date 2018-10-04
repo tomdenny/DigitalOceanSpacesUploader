@@ -74,7 +74,8 @@ namespace DigitalOceanSpacesManager
 
             string filePath, uploadName, spaceName, contentType = string.Empty;
             Console.Write("Enter Space name to use: ");
-            spaceName = Console.ReadLine();
+            spaceName = "sms";
+            //spaceName = Console.ReadLine();
 
 			// Can now setup manager
 			DigitalOceanUploadManager digitalOceanUploadManager = new DigitalOceanUploadManager(keyManager, spaceName);
@@ -129,8 +130,41 @@ namespace DigitalOceanSpacesManager
 				}
 				Console.WriteLine($"File downloaded to {downloadLocation} ({file.Length})");
 			}
-			else
-				Console.WriteLine("No idea what you want.  Try again");
+            else if(upDown == "L") // List Files
+            {
+                var files= await digitalOceanUploadManager.ListFiles();
+                foreach( var file in files)
+                {
+                    Console.WriteLine($"{file}");
+                }
+            }
+            else if (upDown == "DA") // Download All
+            {
+                var files = await digitalOceanUploadManager.ListFiles();
+                Console.Write("Enter location to save file: ");
+                var downloadLocation = Console.ReadLine();
+                var i = 0;
+                foreach (var uploadFileName in files)
+                {
+                    i++;
+                    if (uploadFileName.EndsWith('/'))
+                    {
+                        var dir = Path.GetDirectoryName(uploadFileName);
+                        Directory.CreateDirectory(Path.Combine(downloadLocation, dir));
+                        continue;
+                    }
+                    var file = await digitalOceanUploadManager.DownloadFile(uploadFileName);
+                    var fullFilePath = Path.Combine(downloadLocation, uploadFileName);
+                    using (var fs = File.Create(fullFilePath))
+                    {
+                        fs.Write(file, 0, file.Length);
+                    }
+                    Console.WriteLine($"{i} File downloaded to {fullFilePath} ({file.Length})");
+                    
+                }
+            }
+            else
+                Console.WriteLine("No idea what you want.  Try again");
 
 			digitalOceanUploadManager?.Dispose();
 			digitalOceanUploadManager = null;
